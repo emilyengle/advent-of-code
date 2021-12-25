@@ -2,30 +2,32 @@ def get_input():
     f = open("input.txt")
     initial_pop = f.readline().strip().split(",")
     f.close()
-    return [int(p) for p in initial_pop]
+    counts = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+    for p in initial_pop:
+        counts[int(p)] += 1
+    return counts
 
 
-def get_next_pop(prev_pop):
-    next_pop = []
-    num_new = 0
-    for fish in prev_pop:
-        if fish == 0:
-            next_pop.append(6)
-            num_new += 1
-        else:
-            next_pop.append(fish - 1)
-
-    new_fish = [8 for _ in range(num_new)]
-    next_pop.extend(new_fish)
-    return next_pop
+def get_next_counts(counts):
+    num_new = counts.pop(0)
+    counts[6] += num_new
+    counts.append(num_new)
+    return counts
 
 
 if __name__ == "__main__":
-    prev_pop = get_input()
+    counts = get_input()
 
     for i in range(256):
-        next_pop = get_next_pop(prev_pop)
-        print("Day " + str(i) + " Num fish: " + str(len(next_pop)))
-        prev_pop = next_pop
+        next_counts = get_next_counts(counts)
+        print(
+            "Day "
+            + str(i + 1)
+            + " Population: "
+            + str(next_counts)
+            + " Num fish: "
+            + str(sum(next_counts))
+        )
+        counts = next_counts
 
-    print(len(prev_pop))
+    print(sum(counts))
