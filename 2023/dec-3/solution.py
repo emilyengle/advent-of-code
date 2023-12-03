@@ -6,6 +6,23 @@ max_row_idx = 0
 max_col_idx = 0
 
 
+def build_dicts():
+    for row, line in enumerate(lines):
+        line = line.strip()
+        col = 0
+        while col < len(line):
+            if line[col].isdigit():
+                part_number = ""
+                while col < len(line) and line[col].isdigit():
+                    part_number += line[col]
+                    symbols[f"{row}-{col}"] = is_symbol(line[col])
+                    col += 1
+                part_numbers[f"{row}-{col - len(part_number)}"] = part_number
+            else:
+                symbols[f"{row}-{col}"] = is_symbol(line[col])
+                col += 1
+
+
 def get_indices_to_check(row: int, col: int, length: int, max_row: int, max_col: int):
     indices = []
 
@@ -46,31 +63,26 @@ def is_symbol(c: str):
     return not c.isalnum() and c != "."
 
 
+def sum_part_numbers_adjacent_to_symbols():
+    return sum(
+        [
+            int(part_numbers[row_col])
+            for row_col in part_numbers.keys()
+            if is_adjacent_to_symbol(row_col)
+        ]
+    )
+
+
 if __name__ == "__main__":
     lines = open("input.txt").readlines()
-    max_row_idx = len(lines) - 1
-    max_col_idx = len(lines[0].strip()) - 1
-    for row, line in enumerate(lines):
-        line = line.strip()
-        col = 0
-        while col < len(line):
-            if line[col].isdigit():
-                part_number = ""
-                while col < len(line) and line[col].isdigit():
-                    part_number += line[col]
-                    symbols[f"{row}-{col}"] = is_symbol(line[col])
-                    col += 1
-                part_numbers[f"{row}-{col - len(part_number)}"] = part_number
-            else:
-                symbols[f"{row}-{col}"] = is_symbol(line[col])
-                col += 1
+    max_row_idx, max_col_idx = len(lines) - 1, len(lines[0].strip()) - 1
 
-    parts_adjacent_to_symbols = [
-        int(part_numbers[row_col])
-        for row_col in part_numbers.keys()
-        if is_adjacent_to_symbol(row_col)
-    ]
-    print(sum(parts_adjacent_to_symbols))
+    build_dicts()
+
+    # Part 1
+    print(sum_part_numbers_adjacent_to_symbols())
+
+    # Part 2
 
 
 @pytest.mark.parametrize(
