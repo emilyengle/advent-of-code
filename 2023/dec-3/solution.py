@@ -1,6 +1,6 @@
 import pytest
 
-part_numbers = {}  # { [part_number: int]: str for row-col }
+part_numbers = {}  # { [row-col: str]: part number str }
 symbols = {}  # { [row-col: str]: bool for isSymbol }
 max_row_idx = 0
 max_col_idx = 0
@@ -32,11 +32,13 @@ def get_indices_to_check(row: int, col: int, length: int, max_row: int, max_col:
     return indices
 
 
-def is_adjacent_to_symbol(pn):
-    row, col = (int(d) for d in part_numbers[pn].split("-"))
+def is_adjacent_to_symbol(row_col):
+    row, col = (int(d) for d in row_col.split("-"))
     return any(
         symbols[idx]
-        for idx in get_indices_to_check(row, col, len(pn), max_row_idx, max_col_idx)
+        for idx in get_indices_to_check(
+            row, col, len(part_numbers[row_col]), max_row_idx, max_col_idx
+        )
     )
 
 
@@ -58,20 +60,37 @@ if __name__ == "__main__":
                     part_number += line[col]
                     symbols[f"{row}-{col}"] = is_symbol(line[col])
                     col += 1
-                part_numbers[part_number] = f"{row}-{col - len(part_number)}"
+                part_numbers[f"{row}-{col - len(part_number)}"] = part_number
             else:
                 symbols[f"{row}-{col}"] = is_symbol(line[col])
                 col += 1
 
     parts_adjacent_to_symbols = [
-        int(p) for p in part_numbers.keys() if is_adjacent_to_symbol(p)
+        int(part_numbers[row_col])
+        for row_col in part_numbers.keys()
+        if is_adjacent_to_symbol(row_col)
     ]
     print(sum(parts_adjacent_to_symbols))
 
 
 @pytest.mark.parametrize(
     "input,expected",
-    [("a", False), ("A", False), ("6", False), (".", False), ("$", True), ("#", True)],
+    [
+        ("a", False),
+        ("A", False),
+        ("6", False),
+        (".", False),
+        ("$", True),
+        ("#", True),
+        ("/", True),
+        ("=", True),
+        ("*", True),
+        ("-", True),
+        ("&", True),
+        ("%", True),
+        ("@", True),
+        ("+", True),
+    ],
 )
 def test_is_symbol(input, expected):
     assert is_symbol(input) == expected
