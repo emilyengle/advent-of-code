@@ -1,7 +1,9 @@
 import pytest
 
 part_numbers = {}  # { [row-col: str]: part number str }
+gears = []  # [row-col: str]
 symbols = {}  # { [row-col: str]: bool for isSymbol }
+digits = {}  # { [row-col: str]: int for digit or None}
 max_row_idx = 0
 max_col_idx = 0
 
@@ -18,8 +20,12 @@ def build_dicts():
                     symbols[f"{row}-{col}"] = is_symbol(line[col])
                     col += 1
                 part_numbers[f"{row}-{col - len(part_number)}"] = part_number
+                for i in range(len(part_number)):
+                    digits[f"{row}-{col - len(part_number) + i}"] = part_number
             else:
                 symbols[f"{row}-{col}"] = is_symbol(line[col])
+                if line[col] == "*":
+                    gears.append(f"{row}-{col}")
                 col += 1
 
 
@@ -59,6 +65,15 @@ def is_adjacent_to_symbol(row_col):
     )
 
 
+def ratio_if_adjacent_to_2_part_numbers(row_col):
+    row, col = (int(d) for d in row_col.split("-"))
+    indices = get_indices_to_check(row, col, 1, max_row_idx, max_col_idx)
+
+    # lol `set` is definitely not how to handle duplicates surrounding gears but ... it worked
+    nums_adjacent = list(set(int(digits[idx]) for idx in indices if idx in digits))
+    return nums_adjacent[0] * nums_adjacent[1] if len(nums_adjacent) == 2 else 0
+
+
 def is_symbol(c: str):
     return not c.isalnum() and c != "."
 
@@ -73,6 +88,10 @@ def sum_part_numbers_adjacent_to_symbols():
     )
 
 
+def sum_gear_ratios():
+    return sum([ratio_if_adjacent_to_2_part_numbers(gear) for gear in gears])
+
+
 if __name__ == "__main__":
     lines = open("input.txt").readlines()
     max_row_idx, max_col_idx = len(lines) - 1, len(lines[0].strip()) - 1
@@ -83,6 +102,7 @@ if __name__ == "__main__":
     print(sum_part_numbers_adjacent_to_symbols())
 
     # Part 2
+    print(sum_gear_ratios())
 
 
 @pytest.mark.parametrize(
