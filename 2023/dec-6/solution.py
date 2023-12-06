@@ -1,9 +1,14 @@
 import math
 
 
-def quadratic_formula(a, b, c):
-    root1 = ((-1 * b) + math.sqrt((b * b) - (4 * a * c))) / (2 * a)
-    root2 = ((-1 * b) - math.sqrt((b * b) - (4 * a * c))) / (2 * a)
+def get_discriminant(a, b, c):
+    return (b * b) - (4 * a * c)
+
+
+def get_roots(a, b, c):
+    discriminant = get_discriminant(a, b, c)
+    root1 = ((-1 * b) + math.sqrt(discriminant)) / (2 * a)
+    root2 = ((-1 * b) - math.sqrt(discriminant)) / (2 * a)
     return root1, root2
 
 
@@ -36,15 +41,26 @@ if __name__ == "__main__":
     #      - t1^2 + 71530t1 - t1^2 - 940200 = 0
     #      - 2t1^2 + (time)t1 - distance = 0
 
+    #      - t1^2 + t1t2 - 940200 = 0
+    #      - (71530 - t2)(71530 - t2) + (71530 - t2)t2 - 940200 = 0
+    #      - (t - t2)(t - t2) + (t - t2)t2 - d = 0
+    #      - (t^2 - t2t - t2t + t2^2) + t2t - t2^2 - d = 0
+    #      - t^2 + t2t + t2t - t2^2 + t2t - t2^2 - d = 0
+    #      - 2t2^2 + (3t)t2 + (-d - t^2) = 0
+
     # t1 + t2 = 71530
     #     t2 = 71530 - t1
+    #     t1 = 71530 - t2
 
     # discriminant: b^2 - 4ac
-    discriminant = (time * time) - (4 * -2 * -1 * distance)
-    print(f"Discriminant: {discriminant}")
+    # print(f"Discriminant: {get_discriminant(-2, time, -1 * distance)}")
+    print(
+        f"Discriminant: {get_discriminant(-2, 3 * time, (-1 * distance) - (time * time))}"
+    )
 
     # quadratic roots
-    roots = quadratic_formula(-2, time, -1 * distance)
+    # roots = get_roots(-2, time, -1 * distance)
+    roots = get_roots(-2, 3 * time, (-1 * distance) - (time * time))
     root1 = math.ceil(min(roots))
     root2 = math.floor(max(roots))
     print(f"Roots: {root1, root2}")
