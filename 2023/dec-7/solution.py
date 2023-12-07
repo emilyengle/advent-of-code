@@ -4,7 +4,8 @@ import functools
 import pytest
 
 hands = {}
-card_strength = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
+card_strength_part_1 = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
+card_strength_part_2 = ["A", "K", "Q", "T", "9", "8", "7", "6", "5", "4", "3", "2", "J"]
 hand_strength = [
     "five_kind",
     "four_kind",
@@ -15,16 +16,52 @@ hand_strength = [
     "high_card",
 ]
 
+def get_strength_with_jacks(cards: List[str]):
+    jack_count = cards.count('J')
+    plain_cards = list(filter(lambda c: c != 'J', cards))
+    uniqs = list(set(cards))
+    counts = [cards.count(u) for u in uniqs]
+
+    if jack_count == 0:
+        return get_strength(plain_cards)
+    elif jack_count == 1:
+        if len(uniqs) == 5:
+            return "one_pair"
+        if len(uniqs) == 4:
+            return "three_kind"
+        if len(uniqs) == 3:
+            # 1122J, 1112J
+            return "four_kind" if counts.count(3) == 1 else "full_house"
+        if len(uniqs) == 2:
+            return "five_kind"
+    elif jack_count == 2:
+        if len(uniqs) == 4:
+            return "three_kind"
+        if len(uniqs) == 3:
+            return "four_kind"
+        if len(uniqs) == 2:
+            return "five_kind"
+    elif jack_count == 3:
+        if len(uniqs) == 2:
+            return "five_kind"
+        return "four_kind"
+    elif jack_count == 4:
+        return "five_kind"
+    elif jack_count == 5:
+        return "five_kind"
+
+    raise f'Unknown strength {cards}'
+
 
 def get_strength(cards: List[str]):
     uniqs = list(set(cards))
     counts = [cards.count(u) for u in uniqs]
 
-    if 5 in counts:
+    if len(cards) in counts:
         return "five_kind"
     elif len(uniqs) == 2:
-        return "four_kind" if counts.count(4) == 1 else "full_house"
-    elif len(counts) == 5:
+        return "four_kind" if counts.count(len(cards) - 1) == 1 else "full_house"
+    elif len(counts) == len(cards):
         return "high_card"
     elif 3 in counts:
         return "three_kind"
@@ -37,6 +74,8 @@ def get_strength(cards: List[str]):
 
 
 def sort_hand(h1, h2):
+    # Part 2
+    card_strength = card_strength_part_2
     s1 = hand_strength.index(hands[h1].get("strength"))
     s2 = hand_strength.index(hands[h2].get("strength"))
     if s1 != s2:
@@ -54,9 +93,15 @@ def sort_hand(h1, h2):
 if __name__ == "__main__":
     for line in [line.strip().split(" ") for line in open("input.txt").readlines()]:
         hand, bid = line
+
+        # Part 1
+        # strength = get_strength([c for c in hand])
+        # Part 2
+        strength = get_strength_with_jacks([c for c in hand])
+
         hands[hand] = {
             "bid": int(bid),
-            "strength": get_strength([c for c in hand]),
+            "strength": strength,
         }
 
     sorted_hands = sorted(hands, key=functools.cmp_to_key(sort_hand), reverse=True)
@@ -78,3 +123,23 @@ if __name__ == "__main__":
 )
 def test_get_strength(input, expected):
     assert get_strength(input) == expected
+
+
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        ("66J6J", "five_kind"),
+        ("T55J5", "four_kind"),
+        ("KTJJT", "four_kind"),
+        ("QQQJA", "four_kind"),
+        ("J6767", "full_house"),
+        ("2233J", "full_house"),
+        ("JJ345", "three_kind"),
+        ("AJJ94", "three_kind"),
+        ("98J81", "three_kind"),
+        ("32T3K", "one_pair"),
+        ("67834", "high_card"),
+    ],
+)
+def test_get_strength_with_jacks(input, expected):
+    assert get_strength_with_jacks([i for i in input]) == expected
